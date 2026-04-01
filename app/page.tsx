@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { Card, FilterParams } from "@/types/card";
 import { getAllCards, getAllSets } from "@/lib/api";
 import CardItem from "@/components/CardItem";
 import FilterBar from "@/components/FilterBar";
 import { Search, X, LayoutGrid, List, ChevronLeft, ChevronRight } from "lucide-react";
+
+import { createClient } from "@/lib/supabase";
+import AuthModal from "@/components/AuthModal";
+import type { User } from "@supabase/supabase-js";
 
 export default function Home() {
   const [cards, setCards]         = useState<Card[]>([]);
@@ -15,6 +19,11 @@ export default function Home() {
   const [view, setView]           = useState<"grid" | "list">("grid");
   const [loading, setLoading]     = useState(true);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const [user, setUser] = useState<User | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -32,6 +41,22 @@ export default function Home() {
       }
     }
     load();
+  }, []);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  //scroll up
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const filtered = useMemo(() => {
@@ -123,20 +148,120 @@ export default function Home() {
         </div>
 
         {/* View toggle */}
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
-          <button
-            onClick={() => setView("grid")}
-            className={`p-1.5 rounded-md transition-all ${view === "grid" ? "bg-white shadow text-gray-900" : "text-gray-400 hover:text-gray-600"}`}
-          >
-            <LayoutGrid className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setView("list")}
-            className={`p-1.5 rounded-md transition-all ${view === "list" ? "bg-white shadow text-gray-900" : "text-gray-400 hover:text-gray-600"}`}
-          >
-            <List className="w-4 h-4" />
-          </button>
+<div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+  <button
+    onClick={() => setView("grid")}
+    className={`p-1.5 rounded-md transition-all ${view === "grid" ? "bg-white shadow text-gray-900" : "text-gray-400 hover:text-gray-600"}`}
+  >
+    <LayoutGrid className="w-4 h-4" />
+  </button>
+  <button
+    onClick={() => setView("list")}
+    className={`p-1.5 rounded-md transition-all ${view === "list" ? "bg-white shadow text-gray-900" : "text-gray-400 hover:text-gray-600"}`}
+  >
+    <List className="w-4 h-4" />
+  </button>
+</div>
+
+{/* Profile */}
+<div className="relative ml-2">
+  {user ? (
+    <button
+      onClick={() => setShowDropdown(!showDropdown)}
+      className="w-9 h-9 rounded-full bg-gray-900 text-white text-sm font-bold flex items-center justify-center hover:bg-gray-700 transition-all"
+    >
+      {user.email?.[0].toUpperCase()}
+    </button>
+  ) : (
+    <button
+      onClick={() => setShowAuth(true)}
+      className="px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-all"
+    >
+      Sign in
+    </button>
+  )}
+
+  {/* Dropdown */}
+  {showDropdown && user && (
+  <div
+    style={{ position: "fixed", top: 56, right: 16, zIndex: 100 }}
+    className="bg-white rounded-xl shadow-xl border border-gray-100 w-64 overflow-hidden"
+  >
+    {/* User info */}
+    <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
+      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+        <span className="text-lg font-bold text-gray-600">{user.email?.[0].toUpperCase()}</span>
+      </div>
+      <div className="overflow-hidden">
+        <div className="font-bold text-sm text-gray-900 truncate">
+          {user.user_metadata?.full_name ?? user.email?.split("@")[0]}
         </div>
+        <div className="text-xs text-gray-400 truncate">{user.email}</div>
+      </div>
+    </div>
+
+    {/* Menu items */}
+    {[
+      { label: "Profile", icon: "👤" },
+      { label: "Binder", icon: "📒" },
+      { label: "Settings", icon: "⚙️" },
+    ].map((item) => (
+      <button
+        key={item.label}
+        className="w-full px-4 py-3 text-sm text-gray-700 font-medium text-left hover:bg-gray-50 transition-all flex items-center gap-3"
+        onClick={() => setShowDropdown(false)}
+      >
+        <span>{item.icon}</span>
+        {item.label}
+      </button>
+    ))}
+
+    <div className="border-t border-gray-100">
+      <button
+        onClick={async () => {
+          const supabase = createClient();
+          await supabase.auth.signOut();
+          setShowDropdown(false);
+        }}
+        className="w-full px-4 py-3 text-sm text-red-500 font-semibold text-left hover:bg-red-50 transition-all flex items-center gap-3"
+      >
+        <span>🚪</span>
+        Sign out
+      </button>
+    </div>
+  </div>
+)}
+    {/* Auth Modal */}
+    {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+
+    {showScrollTop && (
+  <button
+    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+    style={{
+      position: "fixed",
+      bottom: 32,
+      left: "50%",
+      transform: "translateX(-50%)",
+      width: 56,
+      height: 56,
+      borderRadius: "50%",
+      background: "#4b5563",
+      color: "white",
+      border: "none",
+      cursor: "pointer",
+      fontSize: 22,
+      fontWeight: 700,
+      boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+      zIndex: 999,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    ↑
+  </button>
+)}
+  </div>
       </header>
 
       {/* Filter Bar */}
