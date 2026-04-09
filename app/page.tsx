@@ -756,6 +756,7 @@ export default function Home() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [sortDesc, setSortDesc] = useState(false);
 
   const isDark = mounted && theme === "dark";
 
@@ -805,48 +806,45 @@ export default function Home() {
   }, []);
 
   const filtered = useMemo(() => {
-    return cards.filter((c) => {
+    let result = cards.filter((c) => {
       if (search && !c.name?.toLowerCase().includes(search.toLowerCase()) &&
           !c.id?.toLowerCase().includes(search.toLowerCase())) return false;
       if (filters.color  && !c.color?.includes(filters.color))  return false;
       if (filters.type   && c.type?.toUpperCase() !== filters.type.toUpperCase()) return false;
       if (filters.rarity) {
-        // Normalize all rarity values: "SP CARD" → "SP", "P CARD" → "P", etc.
         const normalizedRarity = c.rarity?.replace(/\s+CARD\s*$/i, "").trim() || c.rarity;
         if (normalizedRarity !== filters.rarity) return false;
       }
       if (filters.setId) {
         const normalizedFilter = filters.setId.replace(/-/g, "").toUpperCase();
-      
         const setName = c.set?.name ?? "";
-      
         const bracketMatch = setName.match(/\[([^\]]+)\]/);
-      
         const normalizedSet = bracketMatch
           ? bracketMatch[1].replace(/-/g, "").toUpperCase()
           : setName.replace(/-/g, "").toUpperCase();
-      
         if (!normalizedSet.includes(normalizedFilter)) return false;
       }
       return true;
     }).sort((a, b) => {
       const filterId = filters.setId?.replace(/-/g, "").toUpperCase() ?? "";
-    
       const aPrefix = a.id?.split("-")[0].toUpperCase() ?? "";
       const bPrefix = b.id?.split("-")[0].toUpperCase() ?? "";
-    
       const aMatches = aPrefix.includes(filterId) || filterId.includes(aPrefix);
       const bMatches = bPrefix.includes(filterId) || filterId.includes(bPrefix);
-    
       if (aMatches && !bMatches) return -1;
       if (!aMatches && bMatches) return 1;
-    
       const numA = parseInt(a.id?.split("-")[1] ?? "0");
       const numB = parseInt(b.id?.split("-")[1] ?? "0");
-    
       return numA - numB;
     });
-  }, [cards, filters, search]);
+  
+    // True reversal at the end
+    if (sortDesc) {
+      result = result.reverse();
+    }
+  
+    return result;
+  }, [cards, filters, search, sortDesc]);
 
   const selected = selectedIndex >= 0 ? filtered[selectedIndex] : null;
   const filteredRef = useRef(filtered);
@@ -970,6 +968,23 @@ export default function Home() {
               <List style={{ width: 16, height: 16 }} />
             </button>
           </div>
+          <button
+            onClick={() => setSortDesc(!sortDesc)}
+            style={{
+              padding: 6,
+              borderRadius: 6,
+              border: "none",
+              background: sortDesc ? colors.bg.primary : "transparent",
+              color: sortDesc ? colors.text.primary : colors.text.tertiary,
+              cursor: "pointer",
+              fontSize: 14,
+              fontWeight: 600,
+              transition: "all 0.2s",
+            }}
+            title={sortDesc ? "Descending" : "Ascending"}
+          >
+            {sortDesc ? "↓" : "↑"}
+          </button>
         </div>
       </header>
 
