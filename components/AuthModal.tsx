@@ -20,9 +20,9 @@ export default function AuthModal({ onClose, initialMode = "login" }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [suggestSignup, setSuggestSignup] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const { theme } = useTheme();
 
-  // Handle hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -31,17 +31,14 @@ export default function AuthModal({ onClose, initialMode = "login" }: Props) {
 
   const isDark = mounted && theme === "dark";
 
-  // Theme colors
   const colors = {
     bg: {
       primary: isDark ? "#111827" : "#ffffff",
       secondary: isDark ? "#1f2937" : "#f3f4f6",
-      tertiary: isDark ? "#374151" : "#e5e7eb",
     },
     text: {
       primary: isDark ? "#f3f4f6" : "#111827",
       secondary: isDark ? "#9ca3af" : "#6b7280",
-      tertiary: isDark ? "#6b7280" : "#9ca3af",
     },
     border: isDark ? "#374151" : "#e5e7eb",
     error: "#ef4444",
@@ -55,6 +52,11 @@ export default function AuthModal({ onClose, initialMode = "login" }: Props) {
   };
 
   const handleSubmit = async () => {
+    if (mode === "signup" && !termsAccepted) {
+      setError("Please accept the terms and privacy policy");
+      return;
+    }
+
     setLoading(true);
     setError("");
     setSuggestSignup(false);
@@ -74,7 +76,6 @@ export default function AuthModal({ onClose, initialMode = "login" }: Props) {
       } else {
         setStep("verify");
       }
-
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
 
@@ -122,28 +123,23 @@ export default function AuthModal({ onClose, initialMode = "login" }: Props) {
         style={{
           background: colors.bg.primary,
           borderRadius: 16,
-          padding: 24,
+          padding: 32,
           width: "100%",
-          maxWidth: 400,
-          boxShadow: isDark
-            ? "0 25px 50px rgba(0,0,0,0.5)"
-            : "0 25px 50px rgba(0,0,0,0.2)",
+          maxWidth: 420,
+          boxShadow: isDark ? "0 25px 50px rgba(0,0,0,0.5)" : "0 25px 50px rgba(0,0,0,0.2)",
           border: `1px solid ${colors.border}`,
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
           <div>
-            <div style={{ fontWeight: 900, fontSize: 20, color: colors.text.primary }}>
-              {step === "verify" ? "Verify your email" : mode === "login" ? "Welcome back" : "Create account"}
-            </div>
-            <div style={{ fontSize: 13, color: colors.text.secondary, marginTop: 2 }}>
-              {step === "verify" ? "One last step!" : mode === "login" ? "Sign in to your account" : "Sign up for free"}
+            <div style={{ fontWeight: 900, fontSize: 24, color: colors.text.primary }}>
+              Welcome to OPTCG
             </div>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer" }}>
-            <X style={{ width: 20, height: 20, color: colors.text.secondary }} />
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+            <X style={{ width: 24, height: 24, color: colors.text.secondary }} />
           </button>
         </div>
 
@@ -160,11 +156,11 @@ export default function AuthModal({ onClose, initialMode = "login" }: Props) {
               onClick={() => { setStep("form"); setMode("login"); setError(""); }}
               style={{
                 width: "100%",
-                background: isDark ? "#ffffff" : "#111827",
-                color: isDark ? "#111827" : "white",
+                background: "#ef4444",
+                color: "white",
                 border: "none",
-                borderRadius: 12,
-                padding: "11px 0",
+                borderRadius: 8,
+                padding: "12px 0",
                 fontSize: 14,
                 fontWeight: 700,
                 cursor: "pointer",
@@ -178,60 +174,124 @@ export default function AuthModal({ onClose, initialMode = "login" }: Props) {
           </div>
         ) : (
           <div>
-            {/* Google — only on signup */}
-            {mode === "signup" && (
-              <>
-                <button
-                  onClick={handleGoogle}
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 10,
-                    border: `1.5px solid ${colors.border}`,
-                    borderRadius: 12,
-                    padding: "10px 0",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: colors.text.primary,
-                    background: colors.bg.secondary,
-                    cursor: "pointer",
-                    marginBottom: 16,
-                    transition: "all 0.2s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = isDark ? "#374151" : "#e5e7eb";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = colors.bg.secondary;
-                  }}
-                >
-                  <img src="https://www.google.com/favicon.ico" style={{ width: 16, height: 16 }} />
-                  Continue with Google
-                </button>
+            {/* Tab Navigation */}
+            <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
+              <button
+                onClick={() => setMode("login")}
+                style={{
+                  flex: 1,
+                  padding: "12px 16px",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  border: "none",
+                  borderRadius: 8,
+                  cursor: "pointer",
+                  background: mode === "login" ? colors.bg.secondary : "transparent",
+                  color: colors.text.primary,
+                  transition: "all 0.2s",
+                }}
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => setMode("signup")}
+                style={{
+                  flex: 1,
+                  padding: "12px 16px",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  border: "none",
+                  borderRadius: 8,
+                  cursor: "pointer",
+                  background: mode === "signup" ? colors.bg.secondary : "transparent",
+                  color: colors.text.primary,
+                  transition: "all 0.2s",
+                }}
+              >
+                Sign Up
+              </button>
+            </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                  <div style={{ flex: 1, height: 1, background: colors.border }} />
-                  <span style={{ fontSize: 12, color: colors.text.secondary }}>or</span>
-                  <div style={{ flex: 1, height: 1, background: colors.border }} />
-                </div>
-              </>
-            )}
+            {/* Google OAuth */}
+            <button
+              onClick={handleGoogle}
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                border: `1.5px solid ${colors.border}`,
+                borderRadius: 8,
+                padding: "12px 0",
+                fontSize: 14,
+                fontWeight: 600,
+                color: colors.text.primary,
+                background: "transparent",
+                cursor: "pointer",
+                marginBottom: 16,
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = colors.bg.secondary;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+              }}
+            >
+              <img src="https://www.google.com/favicon.ico" style={{ width: 16, height: 16 }} />
+              Continue with Google
+            </button>
 
-            {/* Inputs */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+            {/* Divider */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+              <div style={{ flex: 1, height: 1, background: colors.border }} />
+              <span style={{ fontSize: 12, color: colors.text.secondary }}>or continue with email</span>
+              <div style={{ flex: 1, height: 1, background: colors.border }} />
+            </div>
+
+            {/* Email Input */}
+            <input
+              type="email"
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "12px 14px",
+                fontSize: 14,
+                border: `1.5px solid ${colors.border}`,
+                borderRadius: 8,
+                outline: "none",
+                boxSizing: "border-box",
+                background: colors.bg.secondary,
+                color: colors.text.primary,
+                marginBottom: 12,
+                transition: "all 0.2s",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = colors.text.primary;
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = colors.border;
+              }}
+            />
+
+            {/* Password Input */}
+            <div style={{ position: "relative", marginBottom: 16 }}>
               <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type={showPassword ? "text" : "password"}
+                placeholder={mode === "signup" ? "Password (min. 8 chars)" : "Password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                 style={{
                   width: "100%",
-                  padding: "10px 14px",
+                  padding: "12px 14px",
+                  paddingRight: 40,
                   fontSize: 14,
                   border: `1.5px solid ${colors.border}`,
-                  borderRadius: 12,
+                  borderRadius: 8,
                   outline: "none",
                   boxSizing: "border-box",
                   background: colors.bg.secondary,
@@ -239,71 +299,57 @@ export default function AuthModal({ onClose, initialMode = "login" }: Props) {
                   transition: "all 0.2s",
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = isDark ? "#9ca3af" : "#111827";
-                  e.currentTarget.style.background = colors.bg.primary;
+                  e.currentTarget.style.borderColor = colors.text.primary;
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.borderColor = colors.border;
-                  e.currentTarget.style.background = colors.bg.secondary;
                 }}
               />
-              <div style={{ position: "relative" }}>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                  style={{
-                    width: "100%",
-                    padding: "10px 14px",
-                    paddingRight: 40,
-                    fontSize: 14,
-                    border: `1.5px solid ${colors.border}`,
-                    borderRadius: 12,
-                    outline: "none",
-                    boxSizing: "border-box",
-                    background: colors.bg.secondary,
-                    color: colors.text.primary,
-                    transition: "all 0.2s",
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = isDark ? "#9ca3af" : "#111827";
-                    e.currentTarget.style.background = colors.bg.primary;
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = colors.border;
-                    e.currentTarget.style.background = colors.bg.secondary;
-                  }}
-                />
-                <button
-                  onMouseDown={() => setShowPassword(true)}
-                  onMouseUp={() => setShowPassword(false)}
-                  onMouseLeave={() => setShowPassword(false)}
-                  style={{
-                    position: "absolute",
-                    right: 12,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: colors.text.secondary,
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  {showPassword ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
-                </button>
-              </div>
+              <button
+                onMouseDown={() => setShowPassword(true)}
+                onMouseUp={() => setShowPassword(false)}
+                onMouseLeave={() => setShowPassword(false)}
+                style={{
+                  position: "absolute",
+                  right: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: colors.text.secondary,
+                  display: "flex",
+                  alignItems: "center",
+                  padding: 0,
+                }}
+              >
+                {showPassword ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
+              </button>
             </div>
 
-            {/* Error */}
-            {error && <div style={{ fontSize: 12, color: colors.error, marginBottom: 8 }}>{error}</div>}
+            {/* Error Message */}
+            {error && <div style={{ fontSize: 12, color: colors.error, marginBottom: 12 }}>{error}</div>}
 
-            {/* Suggestions */}
+            {/* Terms Checkbox (Sign Up Only) */}
+            {mode === "signup" && (
+              <label style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "flex-start", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  style={{ marginTop: 4, cursor: "pointer" }}
+                />
+                <span style={{ fontSize: 12, color: colors.text.secondary, lineHeight: 1.5 }}>
+                  I agree to the{" "}
+                  <span style={{ color: "#ef4444", textDecoration: "underline" }}>Terms of Service</span> and{" "}
+                  <span style={{ color: "#ef4444", textDecoration: "underline" }}>Privacy Policy</span>
+                </span>
+              </label>
+            )}
+
+            {/* Suggestion Buttons */}
             {suggestSignup && (
-              <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+              <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
                 {mode === "signup" ? (
                   <button
                     onClick={() => { setMode("login"); setError(""); setSuggestSignup(false); }}
@@ -312,7 +358,7 @@ export default function AuthModal({ onClose, initialMode = "login" }: Props) {
                       border: `1.5px solid ${colors.text.primary}`,
                       background: "transparent",
                       color: colors.text.primary,
-                      borderRadius: 12,
+                      borderRadius: 8,
                       padding: "9px 0",
                       fontSize: 13,
                       fontWeight: 700,
@@ -330,13 +376,13 @@ export default function AuthModal({ onClose, initialMode = "login" }: Props) {
                   </button>
                 ) : (
                   <button
-                    onClick={() => { setMode("signup"); setEmail(""); setPassword(""); setError(""); setSuggestSignup(false); }}
+                    onClick={() => { setMode("signup"); setEmail(""); setPassword(""); setError(""); setSuggestSignup(false); setTermsAccepted(false); }}
                     style={{
                       flex: 1,
                       border: `1.5px solid ${colors.text.primary}`,
                       background: "transparent",
                       color: colors.text.primary,
-                      borderRadius: 12,
+                      borderRadius: 8,
                       padding: "9px 0",
                       fontSize: 13,
                       fontWeight: 700,
@@ -356,44 +402,79 @@ export default function AuthModal({ onClose, initialMode = "login" }: Props) {
               </div>
             )}
 
-            {/* Submit */}
+            {/* Submit Button */}
             <button
               onClick={handleSubmit}
-              disabled={loading || !email || !password}
+              disabled={loading || !email || !password || (mode === "signup" && !termsAccepted)}
               style={{
                 width: "100%",
-                background: isDark ? "#ffffff" : "#111827",
-                color: isDark ? "#111827" : "white",
+                background: "#ef4444",
+                color: "white",
                 border: "none",
-                borderRadius: 12,
-                padding: "11px 0",
+                borderRadius: 8,
+                padding: "12px 0",
                 fontSize: 14,
                 fontWeight: 700,
-                cursor: loading || !email || !password ? "not-allowed" : "pointer",
-                marginBottom: 16,
-                opacity: loading || !email || !password ? 0.4 : 1,
-                transition: "opacity 0.2s",
+                cursor: loading || !email || !password || (mode === "signup" && !termsAccepted) ? "not-allowed" : "pointer",
+                marginBottom: 12,
+                opacity: loading || !email || !password || (mode === "signup" && !termsAccepted) ? 0.6 : 1,
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                if (!loading && email && password && (mode === "login" || termsAccepted)) {
+                  e.currentTarget.style.opacity = "0.9";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading && email && password && (mode === "login" || termsAccepted)) {
+                  e.currentTarget.style.opacity = "1";
+                }
               }}
             >
               {loading ? "Loading..." : mode === "login" ? "Sign in" : "Sign up"}
             </button>
 
-            {/* Toggle */}
+            {/* Toggle Link */}
             <div style={{ textAlign: "center", fontSize: 13, color: colors.text.secondary }}>
               {mode === "login" ? "Don't have an account? " : "Already have an account? "}
               <button
-                onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(""); setSuggestSignup(false); }}
+                onClick={() => { 
+                  setMode(mode === "login" ? "signup" : "login"); 
+                  setError(""); 
+                  setSuggestSignup(false);
+                  setTermsAccepted(false);
+                }}
                 style={{
                   background: "none",
                   border: "none",
                   fontWeight: 700,
-                  color: colors.text.primary,
+                  color: "#ef4444",
                   cursor: "pointer",
+                  padding: 0,
                 }}
               >
                 {mode === "login" ? "Sign up" : "Sign in"}
               </button>
             </div>
+
+            {/* Additional Links */}
+            {mode === "login" && (
+              <div style={{ textAlign: "center", marginTop: 12 }}>
+                <button
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#ef4444",
+                    cursor: "pointer",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    padding: 0,
+                  }}
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

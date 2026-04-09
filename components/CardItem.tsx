@@ -67,7 +67,7 @@ export default function CardItem({ card, onClick }: Props) {
       onClick={() => onClick(card)}
       style={{
         cursor: "pointer",
-        borderRadius: 12,
+        borderRadius: 14,
         overflow: "hidden",
         background: infoAreaBg,
         border: `1px solid ${colorStyle.border}`,
@@ -168,7 +168,7 @@ export default function CardItem({ card, onClick }: Props) {
       </div>
 
       {/* Info area */}
-      <div style={{ padding: 12 }}>
+      {/* <div style={{ padding: 12 }}>
         <div style={{
           fontWeight: 700,
           fontSize: 14,
@@ -199,7 +199,7 @@ export default function CardItem({ card, onClick }: Props) {
           {card.cost  != null && <span>💎 {card.cost}</span>}
           {card.counter && card.counter !== "-" && <span>🛡️ {card.counter}</span>}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
