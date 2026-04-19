@@ -162,12 +162,11 @@ export default function FilterBar({ sets, filters, onChange }: Props) {
                     border: "none",
                     cursor: "pointer",
                     background: isMulticolor
-  ? "radial-gradient(circle at center, rgba(255,255,255,0.15), transparent 60%), conic-gradient(from 180deg, #ef4444, #facc15, #22c55e, #3b82f6, #a855f7, #000000, #ef4444)"
-  : COLOR_DOT[c],
-
-outline: active
-  ? `3px solid ${isMulticolor ? "#808080" : COLOR_DOT[c]}`
-  : "none",
+                                ? "radial-gradient(circle at center, rgba(255,255,255,0.15), transparent 60%), conic-gradient(from 180deg, #ef4444, #facc15, #22c55e, #3b82f6, #a855f7, #000000, #ef4444)"
+                                : COLOR_DOT[c],
+                    outline: active
+                              ? `3px solid ${isMulticolor ? "#808080" : COLOR_DOT[c]}`
+                              : "none",
                     outlineOffset: 2,
                     opacity: dimmed ? 0.35 : 1,
                     transform: active ? "scale(1.15)" : "scale(1)",

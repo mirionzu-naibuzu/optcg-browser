@@ -734,6 +734,8 @@
 //   );
 // }
 
+//SIDEBAR
+
 "use client";
 
 import { useEffect, useRef, useState, useMemo } from "react";
@@ -1066,11 +1068,17 @@ export default function Home() {
   }
 `}</style>
         {loading ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16, marginTop: 16 }}>
-            {Array.from({ length: 18 }).map((_, i) => (
-              <div key={i} className="skeleton-loader" style={{ borderRadius: 12, background: colors.bg.tertiary, border: `1px solid ${colors.border}`, height: 256 }} />
-            ))}
-          </div>
+  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16, marginTop: 16 }}>
+    {Array.from({ length: 18 }).map((_, i) => (
+      <img
+        key={i}
+        src="/card-back.png"
+        alt="Loading..."
+        className="skeleton-loader"  // keep the pulse if you want
+        style={{ borderRadius: 14, width: "100%", opacity: 0.5 }}
+      />
+    ))}
+  </div>
         ) : view === "grid" ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16, marginTop: 16 }}>
             {filtered.map((card, i) => (
