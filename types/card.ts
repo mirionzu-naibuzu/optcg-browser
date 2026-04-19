@@ -27,7 +27,7 @@ export interface CardSet {
 
 export interface FilterParams {
   search?: string;
-  color?: string;
+  colors?: string[];
   type?: string;
   rarity?: string;
   setId?: string;

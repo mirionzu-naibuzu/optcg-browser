@@ -809,7 +809,17 @@ export default function Home() {
     let result = cards.filter((c) => {
       if (search && !c.name?.toLowerCase().includes(search.toLowerCase()) &&
           !c.id?.toLowerCase().includes(search.toLowerCase())) return false;
-      if (filters.color  && !c.color?.includes(filters.color))  return false;
+          if (filters.colors && filters.colors.length > 0) {
+            if (filters.colors.includes("Multicolor")) {
+              // Card color must contain " " (e.g. "Red Blue")
+              if (!c.color?.includes(" ")) return false;
+            } else {
+              // Card must include ALL selected colors
+              for (const col of filters.colors) {
+                if (!c.color?.includes(col)) return false;
+              }
+            }
+          }
       if (filters.type   && c.type?.toUpperCase() !== filters.type.toUpperCase()) return false;
       if (filters.rarity) {
         const normalizedRarity = c.rarity?.replace(/\s+CARD\s*$/i, "").trim() || c.rarity;
@@ -865,7 +875,9 @@ export default function Home() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [selectedIndex]);
 
-  const hasFilters = search || Object.values(filters).some(Boolean);
+  const hasFilters = search || filters.colors?.length || Object.entries(filters)
+  .filter(([k]) => k !== "colors")
+  .some(([, v]) => Boolean(v));
 
   return (
     <div 
@@ -1027,15 +1039,32 @@ export default function Home() {
 
       {/* Cards */}
       <main style={{ paddingLeft: 24, paddingRight: 24, paddingBottom: 64 }}>
-        <style>{`
-          @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-          }
-          .skeleton-loader {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-          }
-        `}</style>
+      <style>{`
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .skeleton-loader {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* NEW: flip animation */
+  @keyframes cardFlipIn {
+    0% {
+      transform: rotateY(90deg) scale(0.95);
+      opacity: 0;
+    }
+    100% {
+      transform: rotateY(0deg) scale(1);
+      opacity: 1;
+    }
+  }
+
+  .card-flip {
+    transform-style: preserve-3d;
+    animation: cardFlipIn 0.6s ease forwards;
+  }
+`}</style>
         {loading ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16, marginTop: 16 }}>
             {Array.from({ length: 18 }).map((_, i) => (
@@ -1045,8 +1074,20 @@ export default function Home() {
         ) : view === "grid" ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16, marginTop: 16 }}>
             {filtered.map((card, i) => (
-              <CardItem key={`${card.id}-${i}`} card={card} onClick={() => setSelectedIndex(i)} />
-            ))}
+  <div
+    key={`${card.id}-${i}`}
+    className="card-flip"
+    style={{
+      animationDelay: `${i * 0.05}s`, // stagger effect
+      perspective: "1000px",
+    }}
+  >
+    <CardItem
+      card={card}
+      onClick={() => setSelectedIndex(i)}
+    />
+  </div>
+))}
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8, maxWidth: 896, marginTop: 16 }}>
@@ -1235,7 +1276,6 @@ export default function Home() {
             >
               <ChevronRight style={{ width: 20, height: 20 }} />
             </button>
-
           </div>
         </div>
       )}
@@ -1269,7 +1309,6 @@ export default function Home() {
           ↑
         </button>
       )}
-
     </div>
   );
 }

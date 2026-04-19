@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import type {User as SupabaseUser} from "@supabase/supabase-js";
-import { Menu, PanelLeft, User, LogIn, Bookmark, Palette, MessageSquare, LogOut, } from "lucide-react";
+import { Menu, PanelLeft, User, LogIn, Bookmark, Palette, MessageSquare, LogOut } from "lucide-react";
 import AuthModal from "@/components/AuthModal";
 
 export default function Sidebar() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -47,7 +49,8 @@ export default function Sidebar() {
 
   const menuItems = [
     { icon: User, label: "Sign In", action: () => { setAuthMode("login"); setShowAuth(true); }, show: !user },
-    { icon: Bookmark, label: "Binder", action: () => {} },
+    { icon: Bookmark, label: "Binder", action: () => router.push("/") },
+    { icon: Menu, label: "DON!!", action: () => router.push("/don"), show: true },
   ];
 
   const bottomItems = [
@@ -91,7 +94,7 @@ export default function Sidebar() {
         style={{
             display: "flex",
             alignItems: "center",
-            justifyContent: expanded ? "space-between" : "center", // ✅ key fix
+            justifyContent: expanded ? "space-between" : "center",
             padding: "16px 12px",
             borderBottom: `1px solid ${colors.border}`,
         }}

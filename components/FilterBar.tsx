@@ -5,7 +5,7 @@ import { FilterParams } from "@/types/card";
 import { useTheme } from "next-themes";
 
 const COLORS   = ["Red", "Green", "Blue", "Purple", "Black", "Yellow"];
-const TYPES = ["LEADER", "CHARACTER", "EVENT", "STAGE"];
+const TYPES = ["LEADER", "CHARACTER", "EVENT", "STAGE", "DON!!"];
 const RARITIES = ["SEC", "SR", "R", "UC", "C", "SP", "TR", "P"];
 
 const COLOR_DOT: Record<string, string> = {
@@ -80,6 +80,30 @@ export default function FilterBar({ sets, filters, onChange }: Props) {
   const set = (key: keyof FilterParams, value: string) =>
     onChange({ ...filters, [key]: filters[key] === value ? undefined : value });
 
+  const selectedColors = filters.colors ?? [];
+  const multicolorActive = selectedColors.includes("Multicolor");
+
+  const handleColorClick = (color: string) => {
+    if (color === "Multicolor") {
+      onChange({ ...filters, colors: multicolorActive ? [] : ["Multicolor"] });
+      return;
+    }
+
+    // Clicking a regular color while multicolor is active: swap to that color
+    if (multicolorActive) {
+      onChange({ ...filters, colors: [color] });
+      return;
+    }
+
+    const current = selectedColors;
+    if (current.includes(color)) {
+      onChange({ ...filters, colors: current.filter((c) => c !== color) });
+    } else {
+      const next = current.length >= 2 ? [current[1], color] : [...current, color];
+      onChange({ ...filters, colors: next });
+    }
+  };
+
   return (
     <div 
       suppressHydrationWarning
@@ -119,26 +143,39 @@ export default function FilterBar({ sets, filters, onChange }: Props) {
         {/* Color */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: colors.label, textTransform: "uppercase", letterSpacing: "0.05em" }}>Color</span>
-          <div style={{ display: "flex", gap: 6 }}>
-            {COLORS.map((c) => (
-              <button
-                key={c}
-                title={c}
-                onClick={() => set("color", c)}
-                style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: "50%",
-                  background: COLOR_DOT[c],
-                  border: "none",
-                  cursor: "pointer",
-                  outline: filters.color === c ? `3px solid ${COLOR_DOT[c]}` : "none",
-                  outlineOffset: 2,
-                  opacity: filters.color && filters.color !== c ? 0.4 : 1,
-                  transition: "all 0.2s",
-                }}
-              />
-            ))}
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            {[...COLORS, "Multicolor"].map((c) => {
+              const isMulticolor = c === "Multicolor";
+              const active = isMulticolor ? multicolorActive : selectedColors.includes(c);
+              const dimmed = !active && selectedColors.length > 0;
+
+              return (
+                <button
+                  key={c}
+                  title={c}
+                  onClick={() => handleColorClick(c)}
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: "50%",
+                    flexShrink: 0,
+                    border: "none",
+                    cursor: "pointer",
+                    background: isMulticolor
+  ? "radial-gradient(circle at center, rgba(255,255,255,0.15), transparent 60%), conic-gradient(from 180deg, #ef4444, #facc15, #22c55e, #3b82f6, #a855f7, #000000, #ef4444)"
+  : COLOR_DOT[c],
+
+outline: active
+  ? `3px solid ${isMulticolor ? "#808080" : COLOR_DOT[c]}`
+  : "none",
+                    outlineOffset: 2,
+                    opacity: dimmed ? 0.35 : 1,
+                    transform: active ? "scale(1.15)" : "scale(1)",
+                    transition: "all 0.2s",
+                  }}
+                />
+              );
+            })}
           </div>
         </div>
 
