@@ -408,17 +408,20 @@ export default function Home() {
           style={{
             position: "fixed",
             inset: 0,
-            background: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.5)",
+            background: isDark ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.55)",
             zIndex: 50,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: 16,
+            padding: 24,
           }}
           onClick={() => setSelectedIndex(-1)}
         >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, width: "100%", maxWidth: 640 }} onClick={(e) => e.stopPropagation()}>
-
+          <div
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, width: "100%", maxWidth: 960 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Prev button */}
             <button
               onClick={() => setSelectedIndex(selectedIndex - 1)}
               disabled={selectedIndex <= 0}
@@ -442,83 +445,161 @@ export default function Home() {
               <ChevronLeft style={{ width: 20, height: 20 }} />
             </button>
 
+            {/* Modal card */}
             <div style={{
-              background: colors.bg.primary,
-              borderRadius: 16,
-              paddingLeft: 24,
-              paddingRight: 24,
-              paddingTop: 24,
-              paddingBottom: 24,
               flex: 1,
-              maxWidth: 448,
-              boxShadow: isDark ? "0 20px 25px rgba(0,0,0,0.4)" : "0 20px 25px rgba(0,0,0,0.1)",
-              maxHeight: "90vh",
-              overflow: "auto",
+              background: colors.bg.primary,
+              borderRadius: 20,
+              boxShadow: isDark ? "0 32px 64px rgba(0,0,0,0.5)" : "0 32px 64px rgba(0,0,0,0.15)",
               border: `1px solid ${colors.border}`,
+              overflow: "hidden",
+              maxHeight: "90vh",
+              display: "flex",
+              flexDirection: "column",
             }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+
+              {/* Top bar: name + close */}
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "18px 24px",
+                borderBottom: `1px solid ${colors.border}`,
+                flexShrink: 0,
+              }}>
                 <div>
-                  <div style={{ fontWeight: 900, fontSize: 20, color: colors.text.primary }}>{selected.name}</div>
-                  <div style={{ fontSize: 12, color: colors.text.tertiary, fontFamily: "monospace" }}>{selected.id}</div>
+                  <div style={{ fontWeight: 900, fontSize: 22, color: colors.text.primary, letterSpacing: "-0.02em" }}>{selected.name}</div>
+                  <div style={{ fontSize: 12, color: colors.text.tertiary, fontFamily: "monospace", marginTop: 2 }}>{selected.id}</div>
                 </div>
-                <button onClick={() => setSelectedIndex(-1)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+                <button onClick={() => setSelectedIndex(-1)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <X style={{ width: 20, height: 20, color: colors.text.tertiary }} />
                 </button>
               </div>
 
-              {selected.images?.large && (
-                <img
-                  src={selected.images.large}
-                  alt={selected.name}
-                  style={{
-                    width: "100%",
-                    borderRadius: 12,
-                    marginBottom: 16,
-                    objectFit: "contain",
-                    maxHeight: 256,
-                    background: colors.bg.tertiary,
-                  }}
-                />
-              )}
+              {/* Body: image left + details right (no divider) */}
+              <div style={{
+                display: "flex",
+                flex: 1,
+                overflow: "hidden",
+                minHeight: 0,
+              }}>
+                {/* Left: image */}
+                <div style={{
+                  width: "45%",
+                  flexShrink: 0,
+                  background: isDark ? "#111827" : "#ffffff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 24,
+                }}>
+                  {selected.images?.large ? (
+                    <img
+                      src={selected.images.large}
+                      alt={selected.name}
+                      style={{
+                        width: "100%",
+                        maxHeight: "100%",
+                        objectFit: "contain",
+                        borderRadius: 12,
+                        boxShadow: isDark
+                          ? "0 12px 40px rgba(0,0,0,0.6)"
+                          : "0 12px 40px rgba(0,0,0,0.2)",
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: 100,
+                      height: 100,
+                      borderRadius: 12,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 40,
+                      border: `2px dashed ${colors.border}`,
+                      background: colors.bg.secondary,
+                    }}>
+                      🃏
+                    </div>
+                  )}
+                </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 14, marginBottom: 12 }}>
-                {[
-                  ["Type",      selected.type],
-                  ["Rarity",    selected.rarity],
-                  ["Color",     selected.color],
-                  ["Cost",      selected.cost],
-                  ["Power",     selected.power],
-                  ["Counter",   selected.counter],
-                  ["Attribute", selected.attribute?.name],
-                  ["Family",    selected.family],
-                  ["Set",       selected.set?.name],
-                ].filter(([, v]) => v != null && v !== "" && v !== "-").map(([label, value]) => (
-                  <div key={String(label)} style={{ background: colors.bg.tertiary, borderRadius: 8, paddingLeft: 12, paddingRight: 12, paddingTop: 12, paddingBottom: 12 }}>
-                    <div style={{ fontSize: 12, color: colors.text.tertiary, marginBottom: 4 }}>{label}</div>
-                    <div style={{ fontWeight: 600, color: colors.text.primary }}>{String(value)}</div>
+                {/* Right: details */}
+                <div style={{
+                  flex: 1,
+                  overflowY: "auto",
+                  padding: 24,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 16,
+                }}>
+                  {/* Stats grid */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    {[
+                      ["Type",      selected.type],
+                      ["Rarity",    selected.rarity],
+                      ["Color",     selected.color],
+                      ["Cost",      selected.cost],
+                      ["Power",     selected.power],
+                      ["Counter",   selected.counter],
+                      ["Attribute", selected.attribute?.name],
+                      ["Family",    selected.family],
+                      ["Set",       selected.set?.name],
+                    ].filter(([, v]) => v != null && v !== "" && v !== "-").map(([label, value]) => (
+                      <div key={String(label)} style={{
+                        background: colors.bg.secondary,
+                        borderRadius: 10,
+                        padding: "10px 14px",
+                        border: `1px solid ${colors.border}`,
+                      }}>
+                        <div style={{ fontSize: 11, color: colors.text.tertiary, marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700 }}>{label}</div>
+                        <div style={{ fontWeight: 600, fontSize: 14, color: colors.text.primary }}>{String(value)}</div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+
+                  {/* Effect */}
+                  {selected.ability && (
+                    <div style={{
+                      background: colors.bg.secondary,
+                      borderRadius: 10,
+                      padding: "12px 14px",
+                      border: `1px solid ${colors.border}`,
+                    }}>
+                      <div style={{ fontSize: 11, color: colors.text.tertiary, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700 }}>Effect</div>
+                      <div style={{ fontSize: 14, color: colors.text.primary, lineHeight: 1.7 }}>{selected.ability}</div>
+                    </div>
+                  )}
+
+                  {/* Trigger */}
+                  {selected.trigger && selected.trigger !== "" && (
+                    <div style={{
+                      background: isDark ? "rgba(217,119,6,0.1)" : "rgba(251,191,36,0.08)",
+                      borderRadius: 10,
+                      padding: "12px 14px",
+                      border: `1px solid ${isDark ? "rgba(251,191,36,0.2)" : "rgba(217,119,6,0.2)"}`,
+                    }}>
+                      <div style={{ fontSize: 11, color: isDark ? "#fbbf24" : "#d97706", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700 }}>Trigger</div>
+                      <div style={{ fontSize: 14, color: colors.text.primary, lineHeight: 1.7 }}>{selected.trigger}</div>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {selected.ability && (
-                <div style={{ background: colors.bg.tertiary, borderRadius: 8, paddingLeft: 12, paddingRight: 12, paddingTop: 12, paddingBottom: 12, marginBottom: 12 }}>
-                  <div style={{ fontSize: 12, color: colors.text.tertiary, marginBottom: 4, fontWeight: 600 }}>Effect</div>
-                  <div style={{ fontSize: 14, color: colors.text.primary, lineHeight: 1.6 }}>{selected.ability}</div>
-                </div>
-              )}
-
-              {selected.trigger && selected.trigger !== "" && (
-                <div style={{ background: isDark ? "rgba(217,119,6,0.1)" : "rgba(251,191,36,0.1)", borderRadius: 8, paddingLeft: 12, paddingRight: 12, paddingTop: 12, paddingBottom: 12 }}>
-                  <div style={{ fontSize: 12, color: isDark ? "#fbbf24" : "#d97706", marginBottom: 4, fontWeight: 600 }}>Trigger</div>
-                  <div style={{ fontSize: 14, color: colors.text.primary, lineHeight: 1.6 }}>{selected.trigger}</div>
-                </div>
-              )}
-
-              <div style={{ textAlign: "center", fontSize: 12, color: colors.text.tertiary, marginTop: 16, paddingTop: 12, borderTop: `1px solid ${colors.border}` }}>
+              {/* Bottom bar: counter */}
+              <div style={{
+                borderTop: `1px solid ${colors.border}`,
+                padding: "10px 24px",
+                textAlign: "center",
+                fontSize: 12,
+                color: colors.text.tertiary,
+                flexShrink: 0,
+              }}>
                 {selectedIndex + 1} / {filtered.length}
               </div>
             </div>
 
+            {/* Next button */}
             <button
               onClick={() => setSelectedIndex(selectedIndex + 1)}
               disabled={selectedIndex >= filtered.length - 1}
