@@ -51,7 +51,7 @@ export default function CardItem({ card, onClick }: Props) {
   const cardColors = card.color?.split("/") ?? ["Black"];
   const primaryColor = cardColors[0].trim();
   const colorStyle = COLOR_STYLES[primaryColor] ?? COLOR_STYLES.Black;
-  const normalizedRarity = card.rarity === "SP CARD" ? "SP" : card.rarity;
+  const normalizedRarity = card.name?.includes("(SP)") ? "SP" : card.rarity === "SP" ? "SP" : card.rarity;
   const rarityStyle = RARITY_STYLES[normalizedRarity] ?? RARITY_STYLES.C;
 
   const bgGradient = isDark

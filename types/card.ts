@@ -1,6 +1,6 @@
 export type CardColor = "Red" | "Green" | "Blue" | "Purple" | "Black" | "Yellow" | "Multicolor";
 export type CardType = "LEADER" | "CHARACTER" | "EVENT" | "STAGE";
-export type CardRarity = "SEC" | "SR" | "R" | "UC" | "C" | "SP CARD" | "TR" | "P" | "L";
+export type CardRarity = "SEC" | "SR" | "R" | "UC" | "C" | "SP" | "TR" | "P" | "L";
 
 export interface Card {
   id: string;
